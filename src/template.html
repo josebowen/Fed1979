@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fed1979</title>
+<meta name="description" content="Sit in on three real Federal Reserve meetings from 1979 to 1982. Read the transcripts, predict the votes, make your own call, and weigh a debate economists still have not settled.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>/*CSS*/</style>
+</head>
+<body data-state="title">
+<canvas id="gl" role="img" aria-label="Live 3D view of a boardroom at night. Twelve members of the Federal Open Market Committee sit at the table. A model city on the table plays back the real data: a brass column for the federal funds rate, cranes for mortgage rates, shop lights for inflation and a queue for unemployment."></canvas>
+<div id="labels" aria-hidden="true"></div>
+
+<main id="title">
+  <div class="in">
+    <p class="kick">Living history · monetary policy · college level</p>
+    <h1>Fed<em>1979</em></h1>
+    <p class="sub">Three real meetings. Real votes, real transcripts, real data. A debate that is still open.</p>
+    <div class="row"><button class="btn pri big" data-act="begin">Enter the room</button><button class="btn" data-act="about">About this demo</button></div>
+    <p class="foot">About 10 minutes · Sources: FOMC transcripts and records, Federal Reserve Board, FRED, St. Louis Fed · Best on a large screen</p>
+  </div>
+</main>
+
+<header id="top">
+  <span class="brand">Fed1979</span>
+  <ol id="steps" aria-label="Progress"><li>Briefing</li><li>Sept 1979</li><li>Oct 1979</li><li>July 1982</li><li>Debrief</li></ol>
+  <span class="sp"></span>
+  <div class="tools"><button class="btn sm" id="soundBtn" data-act="sound" aria-pressed="true">Sound on</button><button class="btn sm" data-act="about">About</button></div>
+</header>
+
+<section id="hud" aria-label="Economic gauges">
+  <div class="hudfoot" style="margin:0 0 10px;padding:0;border:0"><span class="qtr" id="qtr">1979 Q3</span><span id="srcnote">Real data, FRED</span></div>
+  <div id="gauges"></div>
+  <canvas id="chart" aria-hidden="true"></canvas>
+  <div class="legend" id="legend"></div>
+</section>
+
+<aside id="panel" aria-label="Meeting panel"><div id="panelBody" aria-live="polite"></div></aside>
+<div id="caption" role="status"></div>
+
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="aboutH" hidden>
+  <div class="card"><button class="btn sm" id="modalClose" data-act="closeAbout">Close</button><div id="aboutBody"></div></div>
+</div>
+<script>/*JS*/</script>
+</body>
+</html>
