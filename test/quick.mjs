@@ -1,0 +1,11 @@
+import puppeteer from 'puppeteer-core';
+const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--window-size=1600,900'] });
+const p = await b.newPage(); await p.setViewport({ width: 1600, height: 900 });
+const errs = []; p.on('pageerror', (e) => errs.push(e.message));
+await p.goto('file://' + process.cwd() + '/index.html?dtcap=0.3');
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+await wait(3000);
+await p.evaluate(() => { __demo.go('meet', 2); __demo.answer({ call: 0, callDone: true }); __demo.step('contest'); document.querySelector('.pos').scrollIntoView(); });
+await wait(1500); await p.screenshot({ path: 'test/out/q-contest.png' });
+await p.evaluate(() => { __demo.step('call'); }); await wait(1500); await p.screenshot({ path: 'test/out/q-members.png' });
+console.log('errs', errs); await b.close();
