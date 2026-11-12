@@ -164,3 +164,83 @@ body.alarm::after{animation:alarm 1.3s 2}
 .srcs li{font-size:13px;margin:0 0 4px}
 @media (max-width:819px){.roll{grid-template-columns:repeat(3,1fr)}.seg.three span{font-size:11.5px}}
 .pos{grid-template-columns:minmax(0,1fr)}.pos div,.member{min-width:0}.src,.src .cite,.pos .cite{white-space:normal;overflow-wrap:anywhere}
+
+/* ---------- November 12 rework: larger type, speech bubbles, cards, navigation ---------- */
+:root{--pw:clamp(440px,35vw,600px)}
+body[data-step=contest]{--pw:clamp(520px,46vw,780px)}
+#panelBody{padding:26px 28px 26px}
+#panel h2{font-size:clamp(28px,2.3vw,40px);line-height:1.1}
+#panel h3{font-size:14px;margin:22px 0 10px}
+#panel p,#panel li{font-size:clamp(17px,1.22vw,20px);line-height:1.5}
+.prop{font-size:clamp(19px,1.45vw,24px);padding:14px 16px}
+.hint{font-size:clamp(15px,1.02vw,17px)!important}
+.src{font-size:13.5px!important}
+.fb{font-size:clamp(16.5px,1.16vw,19px)!important;padding:12px 14px;margin:12px 0 0!important}
+.seg span,.seg.one span,.cards span{font-size:clamp(16.5px,1.16vw,19px);min-height:54px;padding:10px 14px}
+.kick{font-size:13px}.count{font:600 14px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 4px!important}
+.btn{font-size:17px;padding:13px 22px}.btn.sm{font-size:14px;padding:8px 15px}
+.pos b{font-size:19px}.pos p{font-size:clamp(16px,1.1vw,18px)!important}.member .say{font-size:clamp(17px,1.2vw,20px)}
+.contest{font-size:clamp(16px,1.1vw,18px)!important}
+.roll b{font-size:16px}.roll small{font-size:12.5px}
+#steps{display:flex;gap:6px}
+#steps button{font:600 13.5px var(--ui);letter-spacing:.03em;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:rgba(8,10,18,.7);cursor:pointer;white-space:nowrap}
+#steps button:hover{border-color:var(--cy)}#steps button.cur{background:var(--cy);color:#1d1404;border-color:transparent}#steps button.done{color:var(--ok);border-color:rgba(111,240,176,.4)}
+.stages{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 18px}
+.stages button{font:600 12.5px var(--ui);padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
+.stages button.cur{background:rgba(232,189,106,.22);border-color:var(--cy)}.stages button:disabled{color:#7f796d;border-color:rgba(226,184,110,.1);cursor:default}
+.stages button:not(:disabled):hover{border-color:var(--cy)}
+#labels{pointer-events:none}
+.lab.seat{font:600 15px var(--ui);padding:5px 11px 6px;text-align:center;line-height:1.15;cursor:pointer;border-radius:12px;background:rgba(8,10,18,.82)}
+.lab.seat b{display:block}.lab.seat small{display:block;font:600 11.5px var(--ui);margin-top:2px}
+.lab.seat small.maj{color:#8ff0b8}.lab.seat small.tight{color:#ffb08a}.lab.seat small.easy{color:#b3ccff}
+.lab.seat:hover,.lab.seat.speaking{border-color:#ffd58a;box-shadow:0 0 0 2px rgba(255,213,138,.35)}
+#bubble{position:fixed;left:0;top:0;max-width:min(640px,calc(100vw - var(--pw) - 90px));padding:18px 24px 16px;border-radius:20px;background:#f7f1e3;color:#1c160b;box-shadow:0 18px 60px rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .35s;z-index:3}
+#bubble.on{opacity:1}
+#bubble::after{content:"";position:absolute;left:var(--tail,50%);bottom:-20px;margin-left:-14px;border:14px solid transparent;border-top:22px solid #f7f1e3;border-bottom:0}
+#bubble p{margin:0}.bwho{font:500 15px var(--ui);color:#5b4a2a;margin-bottom:6px!important}.bwho b{font-size:17px;color:#1c160b}.bwho small{font-size:14px}
+.bsay{font:500 clamp(22px,2vw,34px)/1.25 var(--disp);text-wrap:pretty}.bsrc{font:500 12.5px var(--ui);color:#6b5a3a;margin-top:10px!important}
+#card{position:fixed;left:calc((100vw - var(--pw) - 40px)/2);top:50%;transform:translate(-50%,-50%);width:min(720px,calc(100vw - var(--pw) - 90px));max-height:86vh;overflow:auto;padding:28px 32px;border-radius:22px;background:rgba(10,13,24,.96);border:1px solid var(--cy);box-shadow:0 30px 100px rgba(0,0,0,.7);z-index:6}
+#card[hidden]{display:none}#cardClose{float:right;margin:-6px -8px 0 12px}
+#card h2{font:600 clamp(30px,2.6vw,44px)/1.08 var(--disp);margin:0 0 6px}#card h2:focus{outline:none}
+#card h3{font:600 13.5px var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:22px 0 10px}
+#card p,#card li{font-size:clamp(17px,1.25vw,20px);line-height:1.5;color:#efe8da;margin:0 0 12px}
+#card .role{color:var(--cy);font-weight:600}
+#card blockquote{margin:0 0 14px;padding:12px 16px;border-left:3px solid var(--cy);background:rgba(232,189,106,.07);border-radius:0 12px 12px 0;font:500 clamp(18px,1.4vw,23px)/1.35 var(--disp)}
+#card blockquote cite{display:block;font:500 13px var(--ui);margin-top:8px;font-style:normal}
+.votes,.recap{list-style:none;padding:0;margin:0 0 14px}.votes li,.recap li{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(232,189,106,.14);margin:0!important}
+.votes small{display:block;font-size:14.5px;color:var(--mute)}.votes li.yes .mark,.recap li.ok .mark{background:var(--ok);color:#04261a}.votes li.no .mark,.recap li.no .mark{background:#ff8a5c;color:#2b0d02}
+#cardChart{width:100%;height:230px;display:block;margin:6px 0 12px}
+#card .kv{font-size:17px}
+.legendline{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:15px!important}
+.legendline span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px}
+.legendline .maj::before{background:#6fdc9c}.legendline .tight::before{background:#ff8a5c}.legendline .easy::before{background:#8fb4ff}
+#caption{bottom:28px;font-size:clamp(20px,1.9vw,30px)}
+/* debrief uses the whole screen */
+body[data-state=debrief]{--pw:0px}
+body[data-state=debrief] #panel{left:20px;right:20px;top:62px;width:auto;background:rgba(7,9,17,.9)}
+body[data-state=debrief] #top .tools{margin-right:0}
+.deb{display:grid;grid-template-columns:1fr 1fr;gap:10px 48px;max-width:1500px;margin:0 auto;padding:1vh 2vw}
+.debhead{grid-column:1/-1}.deb h2{font-size:clamp(36px,3.4vw,60px)!important;margin-bottom:18px!important}
+.deb p,.deb li,.deb td,.deb th{font-size:clamp(18px,1.4vw,24px)!important;line-height:1.45}
+.deb h3{font-size:15px!important}.deb .try li{margin-bottom:14px}
+.deb table{font-size:inherit}.deb td,.deb th{padding:12px 10px;text-align:left;vertical-align:top}
+.scorebar{gap:14px}.scorebar span{font-size:clamp(17px,1.3vw,22px);padding:14px 22px;border-radius:18px;text-align:center;min-width:180px}
+.scorebar b{font:600 clamp(34px,3vw,54px) var(--disp);color:var(--cy)}.scorebar small{display:block;color:var(--mute);font-size:clamp(14px,1vw,17px)}
+button.link{background:none;border:0;border-bottom:1px solid var(--cy);padding:0;color:var(--cy);font:inherit;cursor:pointer;float:none;text-transform:none;letter-spacing:0}
+@media (max-width:1320px) and (min-width:820px){.brand{display:none}#steps button{padding:6px 10px;font-size:12.5px}}
+@media (max-width:819px){
+ :root,body[data-step=contest]{--pw:0px}
+ #panelBody{padding:16px 16px 20px}#panel h2{font-size:23px}#panel p,#panel li{font-size:15.5px}.prop{font-size:16.5px}.seg span,.seg.one span,.cards span{font-size:15px;min-height:46px}
+ .btn{font-size:15px;padding:11px 16px}.fb{font-size:15px!important}
+ #steps{gap:3px}#steps button{padding:4px 7px;font-size:10.5px}#top .tools{margin-right:0}
+ .lab.seat{font-size:9.5px;padding:2px 4px}.lab.seat small{font-size:8px}
+ #bubble{max-width:calc(100vw - 16px);padding:10px 14px}.bsay{font-size:17px}.bwho b{font-size:14px}
+ #card{left:50%;width:calc(100vw - 16px);padding:18px}
+ .deb{grid-template-columns:1fr;gap:6px}body[data-state=debrief] #panel{left:0;right:0;top:44px;bottom:0;max-height:none}
+ .scorebar span{min-width:0;flex:1;padding:8px}
+}
+fieldset.q legend{font-size:clamp(16px,1.15vw,19px);margin-bottom:9px}
+.lab.seat small{font-size:12.5px}
+.deb table th:first-child{white-space:nowrap}
+
+@media (max-width:819px){.lab.seat small{font-size:7.5px}.lab.seat{font-size:9px;padding:2px 3px}#caption{display:none}}

@@ -49,7 +49,7 @@ export const PEOPLE = {
 export const isGov = (id) => /Governor|Chairman|Board/.test(PEOPLE[id][1]);
 
 // Positions used in the "where did they land" task and in the roll call.
-export const POS = [['tight', 'Dissented for a firmer policy'], ['maj', 'Voted with the majority'], ['easy', 'Dissented for an easier policy']];
+export const POS = [['tight', 'Against: wanted firmer'], ['maj', 'Voted for the motion'], ['easy', 'Against: wanted easier']];
 
 export const BRIEF = {
   title: 'Three meetings, one argument',
@@ -233,10 +233,40 @@ export const ABOUT = `<h3>What is real</h3>
 <li>Descriptions of a member's reasons that are not in quotation marks are paraphrase, drawn from the Record of Policy Actions or the transcript. Summaries of the scholarly positions are also paraphrase, with their sources listed.</li>
 <li>Data are monthly from FRED, the Federal Reserve Bank of St. Louis, current vintage. Members saw earlier, unrevised numbers, so their figures differ slightly.</li></ul>
 <h3>What is not modeled</h3>
-<p>Fed1979 does not simulate what would have happened under a different decision. Your recommendation is compared with the real votes, and the city plays back the real record. The tabletop city is a picture of the data, not a model: the brass column is the funds rate, cranes follow mortgage rates, shop lights follow inflation, and the queue follows unemployment.</p>
+<p>Fed1979 does not simulate what would have happened under a different decision. Your recommendation is compared with the real votes, and the board on the table plays back the real monthly record.</p>
+<p>The member cards show only what is in the record of these meetings: each person's role, recorded votes and words. Fed1979 does not characterize a member's views beyond that.</p>
 <h3>Contested history</h3>
 <p>Whether the 1979 to 1982 policy was necessary, whether it could have cost less, and who bore its costs remain open questions. Fed1979 presents several positions with their sources and does not choose among them. The scored questions ask only which argument a piece of evidence bears on.</p>
 <h3>Sources</h3>
 <ul class="srcs">${Object.keys(SRC).map((k) => `<li>${cite(k)}</li>`).join('')}
 <li>FRED series: ${['FEDFUNDS', 'UNRATE', 'CPIAUCSL', 'MORTGAGE30US', 'M1V'].map(fred).join(', ')}</li></ul>
 <p class="hint">Built with Three.js. No tracking, no data collected. Source code is in the repository.</p>`;
+
+// ---------- every recorded vote used in the game, for the member cards ----------
+// s = the session whose roll call must be seen before this vote is shown.
+export const VOTELOG = [
+  { label: 'Sept 18, 1979. FOMC directive: small rise in the funds rate', s: 0, src: 'r0918', yes: ['volcker', 'kimbrel', 'mayo', 'partee', 'schultz', 'teeters', 'wallich', 'timlen'], no: { balles: 'wanted firmer', black: 'wanted firmer', coldwell: 'wanted firmer', rice: 'wanted no firming' } },
+  { label: 'Sept 18, 1979. Board: discount rate to 11 percent', s: 0, src: 'ar79', yes: ['volcker', 'schultz', 'wallich', 'coldwell'], no: { partee: 'preferred a steady course', teeters: 'preferred a steady course', rice: 'preferred a steady course' } },
+  { label: 'Oct 6, 1979. FOMC: the new reserves method', s: 1, src: 'r1006', yes: ['volcker', 'balles', 'black', 'coldwell', 'kimbrel', 'mayo', 'partee', 'rice', 'schultz', 'teeters', 'wallich', 'timlen'], no: {} },
+  { label: 'July 1, 1982. FOMC directive: tolerate faster money growth', s: 2, src: 'r0701', yes: ['volcker', 'solomon', 'balles', 'gramley', 'martin', 'partee', 'rice', 'keehn'], no: { black: 'wanted firmer', ford: 'wanted firmer', wallich: 'wanted firmer', teeters: 'wanted easier' } },
+  { label: 'Oct 5, 1982. FOMC: give M1 much less weight', s: 2, src: 'r1005', yes: ['volcker', 'solomon', 'balles', 'gramley', 'martin', 'partee', 'rice', 'teeters', 'wallich'], no: { black: '', ford: '' } },
+];
+// Further verbatim lines from the transcripts, shown on member cards once that session's roll is called.
+export const MORE_QUOTES = [
+  ['volcker', 'There is a very strong possibility of recession on the one side.', 't0918', 0],
+  ['volcker', 'There is clearly no risk-free course for us here; there are risks on both sides.', 't1006', 1],
+  ['rice', '9 percent on the low side and 15 to 16 percent on the high side.', 't1006', 1],
+  ['coldwell', 'I\'m not going to dissent … I must admit that I think the M1 target is too high.', 't1006', 1],
+  ['black', 'it would preserve our credibility by coming in at the top of our target', 't0701', 2],
+  ['teeters', 'I think we need a signal in the market that we have eased or rates won\'t come down', 't0701', 2],
+  ['wallich', 'I don\'t think this is the time to make a fundamental change in policy.', 't0701', 2],
+  ['martin', 'the first thoughts will be that we caved in, the election is coming, and here they go again.', 't1005', 2],
+];
+// ---------- the four numbers on the table ----------
+export const DATAINFO = {
+  cpi: { name: 'Inflation', unit: 'CPI, change from a year earlier', sid: 'CPIAUCSL', def: 'The Consumer Price Index for all urban consumers, seasonally adjusted. The figure is the percent change over the previous 12 months.' },
+  un: { name: 'Unemployment', unit: 'share of the labor force', sid: 'UNRATE', def: 'The share of the labor force without a job and looking for one. Monthly, seasonally adjusted.' },
+  ff: { name: 'Federal funds rate', unit: 'monthly average', sid: 'FEDFUNDS', def: 'The rate banks charge each other for overnight loans of reserves, as a monthly average. Until October 6, 1979 the Committee steered it within a narrow band. After that it let the rate move within a wide range.' },
+  mort: { name: '30 year mortgage', unit: 'average new fixed rate', sid: 'MORTGAGE30US', def: 'The average rate on a new 30 year fixed rate home mortgage, from the Freddie Mac survey, as a monthly figure.' },
+};
+export const DATANOTE = 'Current vintage from FRED. Members saw the figures as first published, so theirs differ slightly.';
