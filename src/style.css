@@ -244,3 +244,25 @@ fieldset.q legend{font-size:clamp(16px,1.15vw,19px);margin-bottom:9px}
 .deb table th:first-child{white-space:nowrap}
 
 @media (max-width:819px){.lab.seat small{font-size:7.5px}.lab.seat{font-size:9px;padding:2px 3px}#caption{display:none}}
+
+/* ---------- phone pass ---------- */
+#steps button i{display:none;font-style:normal}
+.roll{grid-template-columns:repeat(4,1fr)}
+@media (max-width:819px){
+ #top{padding:7px 8px;gap:6px;flex-wrap:nowrap}
+ #steps{gap:3px;flex:none}#steps button{padding:5px 7px;font-size:11px}#steps button span{display:none}#steps button i{display:inline}
+ #top .tools{gap:4px;margin-right:0}#top .btn.sm{padding:5px 8px;font-size:11px;white-space:nowrap}
+ #panel{max-height:50vh;max-height:50dvh}
+ .stages{flex-wrap:nowrap;overflow-x:auto;gap:4px;margin:0 -4px 12px;padding:0 4px 4px;scrollbar-width:none}.stages::-webkit-scrollbar{display:none}
+ .stages button{flex:none;font-size:11.5px;padding:5px 9px}
+ #panel .kick{font-size:11px;letter-spacing:.1em}.count{font-size:12px}
+ .lab.seat{font-size:11px;padding:3px 6px;border-radius:9px}.lab.seat small{display:none}
+ #bubble{max-width:calc(100vw - 16px);padding:11px 14px 10px;border-radius:16px}.bsay{font-size:clamp(17px,4.9vw,21px);line-height:1.28}.bwho{font-size:12.5px;margin-bottom:3px!important}.bwho b{font-size:14.5px}.bwho small{font-size:12px}.bsrc{font-size:11px;margin-top:6px!important}
+ #card{top:auto;bottom:0;left:0;transform:none;width:100vw;max-height:82dvh;border-radius:20px 20px 0 0;padding:18px 18px 26px}
+ #card h2{font-size:26px}#card p,#card li{font-size:16px}#card blockquote{font-size:17px}#cardChart{height:170px}
+ .roll{grid-template-columns:repeat(3,1fr);gap:5px}.roll b{font-size:14px}.roll small{font-size:11.5px}
+ .legendline{font-size:13px!important}
+ .deb{padding:0}.deb h2{font-size:30px!important}.deb p,.deb li,.deb td,.deb th{font-size:16px!important}.deb td,.deb th{padding:8px 6px}.scorebar b{font-size:28px}.scorebar small{font-size:12px}
+}
+
+@media (max-width:819px){#top{gap:4px;padding:7px 6px}#steps{gap:2px}#steps button{padding:5px 6px;font-size:10.5px}#top .tools{gap:3px}#top .btn.sm{padding:5px 6px;font-size:10.5px}}

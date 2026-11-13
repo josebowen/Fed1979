@@ -94,15 +94,7 @@ export function createRoom(lite) {
   const table = new THREE.Mesh(new THREE.BoxGeometry(17, 0.22, 5.6), tableMat); table.position.y = -0.11; scene.add(table);
   const trim = new THREE.Mesh(new THREE.BoxGeometry(17.12, 0.06, 5.72), frameMat); trim.position.y = -0.23; scene.add(trim);
   const pedestal = new THREE.Mesh(new THREE.BoxGeometry(12, 2.4, 2.4), new THREE.MeshStandardMaterial({ color: 0x150d07, roughness: 0.6 })); pedestal.position.y = -1.4; scene.add(pedestal);
-  // pendant lamps
-  const shadeMat = new THREE.MeshStandardMaterial({ color: 0x1b1a17, metalness: 0.6, roughness: 0.4, side: THREE.DoubleSide });
-  const bulbMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 1.6, 0.9) });
-  lamps.forEach((l) => {
-    const sh = new THREE.Mesh(new THREE.ConeGeometry(0.75, 0.5, 32, 1, true), shadeMat); sh.position.set(l.position.x, 4.55, 0); scene.add(sh);
-    const b = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), bulbMat); b.position.set(l.position.x, 4.32, 0); scene.add(b);
-    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 4), shadeMat); cord.position.set(l.position.x, 6.8, 0); scene.add(cord);
-  });
-
+  // (the pendant lamp shades were removed: from the fixed camera they sat in front of the members' heads)
   // seats: the chair (you) at the head, four members facing the windows' glow
   const chairMat = new THREE.MeshStandardMaterial({ color: 0x22150d, roughness: 0.5 });
   const seats = [], pickables = [];
@@ -152,7 +144,7 @@ export function createRoom(lite) {
   function update(dt, T, reduce) {
     const k = 1 - Math.exp(-3 * dt), kc = reduce ? 1 : 1 - Math.exp(-6 * dt);
     cur.power = lerp(cur.power, st.power, k);
-    boardMat.color.setScalar(clamp(cur.power, 0.05, 1));
+    boardMat.color.setScalar(clamp(cur.power, 0.05, 1) * 0.88); // kept under the bloom threshold so small text does not smear
     for (const s of seats) { s.base.lerp(s.tb, kc); s.rim.lerp(s.tr, kc); s.fig.uniforms.uBase.value.copy(s.base); s.fig.uniforms.uRim.value.copy(s.rim); }
     glow.begin();
     for (let i = 0; i < motes.length; i += 4) { const ph = motes[i + 3], b = 0.1 + 0.07 * Math.sin(T * 0.7 + ph * 3);

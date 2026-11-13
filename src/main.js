@@ -64,6 +64,15 @@ const VIEWS = {
   room: { t: [0, 1.5, -0.7], w: 20.4, h: 9.2, yaw: 0, pitch: 0.5 },
 };
 const rig = { t: new THREE.Vector3(), d: 30, yaw: 0, pitch: 0.2, view: VIEWS.room, ox: 0, oy: 0 };
+const portrait = () => isPhone() && W < H;
+const PHONE_VIEW = { t: [0, 1.5, -0.7], w: 14.8, h: 8.4, yaw: 0, pitch: 0.5, pf: 1 };
+const PHONE_WIDE = { t: [0, 1.5, -0.7], w: 21.8, h: 8.4, yaw: 0, pitch: 0.5, pf: 1 };
+function currentView() { // on a phone the camera sits closer and slides to the current speaker; the roll call shows all twelve
+  if (!portrait() || S.name === 'title') return rig.view;
+  if (S.name === 'meet' && S.step === 'roll') return PHONE_WIDE;
+  const sp = S.name === 'meet' && S.step === 'record' && S.speaker != null ? room.anchors.seat(S.speaker).x : 0;
+  PHONE_VIEW.t[0] = clamp(sp * 0.6, -2.4, 2.4); return PHONE_VIEW;
+}
 const tf = () => Math.tan(camera.fov * Math.PI / 360);
 function layout() {
   const ph = isPhone();
@@ -72,8 +81,8 @@ function layout() {
   if (ph) { const pb = $('#panel').offsetHeight; return { ox: 0, oy: (pb - 50) / 2, fw: W, fh: Math.max(150, H - pb - 50) }; }
   const P = $('#panel').offsetWidth + 24; return { ox: P / 2, oy: -H * 0.1, fw: W - P, fh: H - 52 };
 }
-function fitDist(v, L) { const w = v.w * (W < H ? 0.92 : 1); return Math.max(v.h * H / (2 * tf() * L.fh), w * H / (2 * tf() * L.fw)); }
-function snapRig() { const v = rig.view, L = layout(); rig.t.fromArray(v.t); rig.yaw = v.yaw; rig.pitch = v.pitch; rig.d = fitDist(v, L); rig.ox = L.ox; rig.oy = L.oy; }
+function fitDist(v, L) { const w = v.w * (W < H ? (v.pf || 0.92) : 1); return Math.max(v.h * H / (2 * tf() * L.fh), w * H / (2 * tf() * L.fw)); }
+function snapRig() { const v = currentView(), L = layout(); rig.t.fromArray(v.t); rig.yaw = v.yaw; rig.pitch = v.pitch; rig.d = fitDist(v, L); rig.ox = L.ox; rig.oy = L.oy; }
 const tmpV = new THREE.Vector3(), tmpA = new THREE.Vector3();
 function updateRig(dt) {
   const L = layout();
@@ -82,7 +91,7 @@ function updateRig(dt) {
     rig.t.fromArray(a.t).lerp(tmpA.fromArray(b.t), u); rig.yaw = 0; rig.pitch = lerp(a.pitch, b.pitch, u); rig.d = lerp(fitDist(a, L), fitDist(b, L) * 0.82, u);
     room.st.power = reduce ? 1 : clamp((S.titleT - 2.5) / 4, 0.05, 1);
   } else {
-    const v = rig.view, k = reduce ? 1 : 1 - Math.exp(-2.4 * dt);
+    const v = currentView(), k = reduce ? 1 : 1 - Math.exp(-2.4 * dt);
     rig.t.lerp(tmpV.fromArray(v.t), k); rig.yaw = lerp(rig.yaw, v.yaw, k); rig.pitch = lerp(rig.pitch, v.pitch, k); rig.d = lerp(rig.d, fitDist(v, L), k);
     room.st.power = S.name === 'debrief' ? 0.35 : 1;
   }
@@ -113,6 +122,7 @@ const who = (id) => { const [n, r] = C.PEOPLE[id]; return `<b>${n}</b> <small>${
 const VOTE_TXT = { maj: 'For', tight: 'Against, firmer', easy: 'Against, easier' };
 const SEATCOL = { maj: '#6fdc9c', tight: '#ff8a5c', easy: '#8fb4ff' };
 const seatOf = (id) => X().members.indexOf(id);
+const roomSession = () => (S.name === 'meet' ? X() : SES[0]); // who is sitting at the table right now
 
 // ---------- labels, speech bubble ----------
 const labelBox = $('#labels');
@@ -124,11 +134,11 @@ function revealCount() { // how many seats have declared in the roll call so far
   return S.step === 'roll' && S.rollT >= 0 ? Math.min(12, Math.floor(S.rollT / 0.34)) : 12;
 }
 function updateLabels() {
-  const meet = S.name === 'meet', x = meet ? X() : SES[0], n = revealCount(), ph = isPhone();
+  const meet = S.name === 'meet', x = meet ? X() : SES[0], n = revealCount(), ph = isPhone(), wide = ph && meet && S.step === 'roll';
   seatLabels.forEach((el, i) => {
-    const p = project(room.anchors.seat(i)), on = meet && p.ok;
+    const p = project(room.anchors.seat(i)), on = (meet || S.name === 'brief') && p.ok && p.x > -30 && p.x < W + 30;
     el.style.opacity = on ? 1 : 0; el.style.pointerEvents = on ? 'auto' : 'none'; if (!on) return;
-    const up = i > 0 && i < 11 && i % 2 ? (ph ? -18 : -44) : 0;
+    const up = i > 0 && i < 11 ? (wide ? -((i - 1) % 3) * 17 : i % 2 ? (ph ? -22 : -44) : 0) : 0;
     el.style.transform = `translate(${p.x.toFixed(1)}px,${(p.y + up).toFixed(1)}px) translate(-50%,-100%)`;
   });
   // speech bubble follows the current speaker
@@ -198,15 +208,15 @@ function setMonth(m) { if (Math.abs(m - S.month) > 1e-4) { S.month = m; boardDir
 // ---------- picking: figures and data tiles ----------
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 function pickAt(cx, cy) {
-  if (S.name !== 'meet') return null;
+  if (S.name !== 'meet' && S.name !== 'brief') return null;
   ndc.set(cx / W * 2 - 1, -(cy / H * 2 - 1)); ray.setFromCamera(ndc, camera);
   const hit = ray.intersectObjects([...room.pickables, room.board.mesh], false)[0]; if (!hit) return null;
   if (hit.object === room.board.mesh) { const u = hit.uv.x * room.board.canvas.width, v = (1 - hit.uv.y) * room.board.canvas.height; const i = tileRects().findIndex((r) => u >= r.x && u <= r.x + r.w && v >= r.y && v <= r.y + r.h); return i >= 0 ? { tile: i } : null; }
   return { seat: hit.object.userData.seat };
 }
 canvas.addEventListener('pointermove', (e) => { const h = pickAt(e.clientX, e.clientY); canvas.style.cursor = h ? 'pointer' : 'default'; const t = h && h.tile != null ? h.tile : -1; if (t !== S.hoverTile) { S.hoverTile = t; boardDirty = true; } });
-canvas.addEventListener('click', (e) => { const h = pickAt(e.clientX, e.clientY); if (!h) return; if (h.tile != null) openCard({ tile: TILES[h.tile][0] }); else openCard({ member: X().members[h.seat] }); });
-labelBox.addEventListener('click', (e) => { const b = e.target.closest('[data-seat]'); if (b && S.name === 'meet') openCard({ member: X().members[+b.dataset.seat] }); });
+canvas.addEventListener('click', (e) => { const h = pickAt(e.clientX, e.clientY); if (!h) return; if (h.tile != null) openCard({ tile: TILES[h.tile][0] }); else openCard({ member: roomSession().members[h.seat] }); });
+labelBox.addEventListener('click', (e) => { const b = e.target.closest('[data-seat]'); if (b && (S.name === 'meet' || S.name === 'brief')) openCard({ member: roomSession().members[+b.dataset.seat] }); });
 
 // ---------- cards: a member, or one number ----------
 const card = $('#card'), cardBody = $('#cardBody');
@@ -269,7 +279,7 @@ function render() {
   const cur = stepIndex();
   document.querySelectorAll('#steps button').forEach((b, i) => { b.className = i === cur ? 'cur' : i < cur ? 'done' : ''; b.setAttribute('aria-current', i === cur ? 'step' : 'false'); });
   let h = '';
-  if (S.name === 'brief') h = `<p class="kick">Briefing</p><h2 tabindex="-1">${C.BRIEF.title}</h2>${C.BRIEF.body}<p class="hint">In the room: tap a member to see their record so far. Tap a number on the table for detail. The bar at the top takes you to any session.</p><div class="row"><button class="btn pri" data-act="startMeeting">Session 1: September 18, 1979</button></div>`;
+  if (S.name === 'brief') h = `<p class="kick">Briefing</p><h2 tabindex="-1">${C.BRIEF.title}</h2>${C.BRIEF.body}<p class="hint">Tap a member to see their record so far. Tap a number on the table for detail. Both work now. The bar at the top takes you to any session.</p><div class="row"><button class="btn pri" data-act="startMeeting">Session 1: September 18, 1979</button></div>`;
   else if (S.name === 'meet') h = stageNav() + renderMeeting();
   else if (S.name === 'debrief') h = renderDebrief();
   panel.innerHTML = h; panel.parentElement.scrollTop = 0;
@@ -318,7 +328,8 @@ function renderMeeting() {
   if (S.step === 'roll') {
     const pos = x.calls[a.call][1], with_ = x.members.filter((id) => x.votes[id] === pos);
     let h = `${kick(x)}<h2 tabindex="-1">The roll call: ${x.tally}</h2><p class="prop">${x.question}</p>
-      <p class="legendline"><span class="maj">For the motion</span><span class="tight">Against: wanted firmer</span><span class="easy">Against: wanted easier</span></p>`;
+      <p class="legendline"><span class="maj">For the motion</span><span class="tight">Against: wanted firmer</span><span class="easy">Against: wanted easier</span></p>
+      <div class="roll">${x.members.map((id) => `<div class="${x.votes[id]}${x.votes[id] === pos ? ' you' : ''}"><b>${surname(id)}</b><small>${VOTE_TXT[x.votes[id]]}</small></div>`).join('')}</div>`;
     if (x.extraVote) { const e = x.extraVote; h += `<h3>${e.label}: ${e.tally}</h3><div class="roll">${[...e.yes.map((id) => [id, 'maj', 'For']), ...e.no.map((id) => [id, 'easy', 'Against'])].map(([id, c, l]) => `<div class="${c}"><b>${surname(id)}</b><small>${l}</small></div>`).join('')}</div>${cites([e.cite])}`; }
     h += `<h3>Who stood with you</h3><p>You recommended: <i>${x.calls[a.call][0]}</i></p>`;
     if (with_.length) h += `<p>${with_.length === x.members.length ? 'Every voting member.' : with_.map((id) => C.PEOPLE[id][0]).join(', ') + '.'}</p>`;
