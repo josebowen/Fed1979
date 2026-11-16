@@ -236,7 +236,7 @@ export const ABOUT = `<h3>What is real</h3>
 <li>Descriptions of a member's reasons that are not in quotation marks are paraphrase, drawn from the Record of Policy Actions or the transcript. Summaries of the scholarly positions are also paraphrase, with their sources listed.</li>
 <li>Data are monthly from FRED, the Federal Reserve Bank of St. Louis, current vintage. Members saw earlier, unrevised numbers, so their figures differ slightly.</li></ul>
 <h3>How your thinking is recorded</h3>
-<p>Before each answer is checked you say how sure you are. With each recommendation you name the fact that weighs most for you. The page keeps these and plays them back in the debrief. Nothing is sent anywhere.</p>
+<p>Before each answer is checked you say how sure you are. With each recommendation you name the fact that weighs most for you. The page keeps these and plays them back in the debrief, with the time you spent on open decisions. Nothing is sent anywhere.</p>
 <h3>What is not modeled</h3>
 <p>Fed1979 does not simulate what would have happened under a different decision. Your recommendation is compared with the real votes, and the board on the table plays back the real monthly record.</p>
 <p>The member cards show only what is in the record of these meetings: each person's role, recorded votes and words. Fed1979 does not characterize a member's views beyond that.</p>

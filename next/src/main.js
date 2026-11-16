@@ -1,4 +1,5 @@
 // Fed1979. App shell: renderer, fixed camera, state machine, panel, speech bubbles, data board, cards.
+import { EF } from './effort.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -368,6 +369,12 @@ function score() {
     if (a.callDone) { done++; if (x.calls[a.call][1] === 'maj') withMaj++; } });
   return { sort, sortN, pred, ev, evN, withMaj, done };
 }
+EF.watch(() => { if (S.name !== 'meet') return null; const a = A(), x = X(), n = S.s + 1;
+  if (S.step === 'record') return a.qi >= 0 && a.qi < x.quotes.length && a.sort[a.qi] === undefined ? `Session ${n}: placing ${surname(x.quotes[a.qi][0])}` : null;
+  if (S.step === 'predict') return a.predChecked ? null : `Session ${n}: predicting the split`;
+  if (S.step === 'call') return `Session ${n}: your recommendation`;
+  if (S.step === 'contest') return a.evChecked ? null : `Session ${n}: weighing the evidence`;
+  return null; });
 function trail() {
   const cal = [[0, 0], [0, 0], [0, 0]];
   const rows = SES.map((x, i) => { const a = S.ans[i];
@@ -376,7 +383,7 @@ function trail() {
     const cl = a.callDone ? `${x.calls[a.call][0].split(':')[0]}<br><small>Weighed most: ${x.weigh[a.weigh ?? 0]}</small>` : 'Not played';
     return `<tr><th>${x.short}</th><td data-l="Speakers you placed">${sp || 'Not played'}</td><td data-l="Split you predicted">${pr}</td><td data-l="Your call">${cl}</td></tr>`; }).join('');
   const calTxt = CONF.map((c, i) => cal[i][1] ? `${c}: right ${cal[i][0]} of ${cal[i][1]}` : '').filter(Boolean).join('. ');
-  return `<h3>Your reasoning, played back</h3><div class="tw"><table class="trail"><thead><tr><th>Session</th><th>Speakers you placed</th><th>Split you predicted</th><th>Your call and the fact behind it</th></tr></thead><tbody>${rows}</tbody></table></div>${calTxt ? `<p class="hint">How sure you were against how you did. ${calTxt}.</p>` : ''}`;
+  return `<h3>Your reasoning, played back</h3><div class="tw"><table class="trail"><thead><tr><th>Session</th><th>Speakers you placed</th><th>Split you predicted</th><th>Your call and the fact behind it</th></tr></thead><tbody>${rows}</tbody></table></div>${calTxt ? `<p class="hint">How sure you were against how you did. ${calTxt}.</p>` : ''}${EF.html()}`;
 }
 function renderDebrief() {
   const s = score();
