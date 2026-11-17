@@ -266,3 +266,9 @@ fieldset.q legend{font-size:clamp(16px,1.15vw,19px);margin-bottom:9px}
 }
 
 @media (max-width:819px){#top{gap:4px;padding:7px 6px}#steps{gap:2px}#steps button{padding:5px 6px;font-size:10.5px}#top .tools{gap:3px}#top .btn.sm{padding:5px 6px;font-size:10.5px}}
+
+/* make thinking visible */
+.trail td,.trail th{vertical-align:top;text-align:left;font-size:13px}.trail small{opacity:.7;font-size:11px}
+.trail .tok,.trail .tno{display:inline-block;margin:0 8px 3px 0;white-space:nowrap}.trail .tno{color:#ffb39a}.trail .tok{color:#a9f0c8}
+.debcol.wide{grid-column:1/-1}.recap small{opacity:.7}
+@media (max-width:819px){.trail thead{display:none}.trail tr,.trail td,.trail th{display:block;width:100%}.trail td::before{content:attr(data-l);display:block;font-size:11px!important;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin-top:4px}.trail tr{border-bottom:1px solid rgba(255,255,255,.15);padding:6px 0}.scorebar{flex-wrap:wrap}}

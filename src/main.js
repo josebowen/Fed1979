@@ -1,4 +1,5 @@
 // Fed1979. App shell: renderer, fixed camera, state machine, panel, speech bubbles, data board, cards.
+import { EF } from './effort.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -51,7 +52,9 @@ const STAGE_NAME = { record: 'The room', predict: 'Predict', call: 'Your call', 
 const TILES = [['cpi', '#ff9b6a'], ['un', '#9fc0ff'], ['ff', '#e8bd6a'], ['mort', '#c7a6ff']];
 
 // ---------- state ----------
-const fresh = () => SES.map(() => ({ qi: -1, sort: {}, pred: undefined, predChecked: false, call: undefined, callDone: false, rolled: false, ran: false, ev: {}, evChecked: false, max: 0 }));
+const CONF = ['Guessing', 'Fairly sure', 'Very sure'];
+const confRow = (name, cur, dis) => `<fieldset class="q"><legend>How sure are you?</legend><div class="seg three">${CONF.map((c, i) => `<label><input type="radio" name="${name}" value="${i}" ${cur === i ? 'checked' : ''} ${dis ? 'disabled' : ''}><span>${c}</span></label>`).join('')}</div></fieldset>`;
+const fresh = () => SES.map(() => ({ tmp: {}, cf: {}, predConf: undefined, weigh: undefined, qi: -1, sort: {}, pred: undefined, predChecked: false, call: undefined, callDone: false, rolled: false, ran: false, ev: {}, evChecked: false, max: 0 }));
 const S = { name: 'title', s: 0, step: 'record', T: 0, ans: fresh(), run: null, titleT: 0, month: 19, rollT: -1, card: null };
 const A = () => S.ans[S.s];
 const X = () => SES[S.s];
@@ -302,20 +305,21 @@ function renderMeeting() {
       <p class="hint">The numbers on the table are what the members had in hand. Next you will hear five of them speak, one at a time.</p>
       <div class="row"><button class="btn pri" data-act="hear">Hear the room</button>${backBtn()}</div>`;
     if (a.qi >= n) { const right = x.quotes.filter((q, i) => a.sort[i] === q[3]).length;
-      return `${kick(x)}<h2 tabindex="-1">${right} of ${n} placed</h2><ul class="recap">${x.quotes.map((q, i) => `<li class="${a.sort[i] === q[3] ? 'ok' : 'no'}"><span class="mark" aria-hidden="true">${a.sort[i] === q[3] ? '✓' : '✕'}</span><div><b>${surname(q[0])}</b>: ${opts.find((o) => o[0] === q[3])[1]}</div></li>`).join('')}</ul>${cites([x.quotes[0][2], recKey(x)])}
+      return `${kick(x)}<h2 tabindex="-1">${right} of ${n} placed</h2><ul class="recap">${x.quotes.map((q, i) => `<li class="${a.sort[i] === q[3] ? 'ok' : 'no'}"><span class="mark" aria-hidden="true">${a.sort[i] === q[3] ? '✓' : '✕'}</span><div><b>${surname(q[0])}</b>: ${opts.find((o) => o[0] === q[3])[1]}<br><small>You were ${CONF[a.cf[i] ?? 0].toLowerCase()}.</small></div></li>`).join('')}</ul>${cites([x.quotes[0][2], recKey(x)])}
       <div class="row"><button class="btn pri" data-stage="predict">Next: predict the vote</button><button class="btn ghost" data-act="rehear">Hear them again</button></div>`; }
     const i = a.qi, q = x.quotes[i], pick = a.sort[i], done = pick !== undefined, ok = pick === q[3];
     let h = `${kick(x)}<p class="count">Speaker ${i + 1} of ${n}</p><h2 tabindex="-1">${x.sortOpts ? x.sortTitle : `How did ${surname(q[0])} vote?`}</h2>
       <p class="prop">${x.question}</p><p class="hint">${x.sortOpts ? x.sortHint : `${C.PEOPLE[q[0]][0]}'s words are over the table, from the transcript. Choose how ${surname(q[0])} voted on this motion.`}</p>
-      <fieldset class="q"><legend class="sr">Your answer</legend><div class="seg one cards">${opts.map(([v, l]) => `<label><input type="radio" name="sort" value="${v}" ${pick === v ? 'checked' : ''} ${done ? 'disabled' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>`;
+      <fieldset class="q"><legend class="sr">Your answer</legend><div class="seg one cards">${opts.map(([v, l]) => `<label><input type="radio" name="sort" value="${v}" ${(done ? pick : a.tmp[i]) === v ? 'checked' : ''} ${done ? 'disabled' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>${confRow('sconf', a.cf[i], done)}`;
+    if (!done) return h + `<div class="row"><button class="btn pri" data-act="lockSort" ${a.tmp[i] !== undefined && a.cf[i] !== undefined ? '' : 'disabled'}>Lock in</button><button class="btn ghost" data-act="prevSpeaker">Back</button></div>`;
     if (done) h += `<p class="fb ${ok ? 'ok' : 'no'}" role="status"><b>${ok ? 'Right.' : 'Not this one.'}</b> ${opts.find((o) => o[0] === q[3])[1]}. ${sortFb(x, i)}</p>`;
     return h + `<div class="row"><button class="btn pri" data-act="nextSpeaker" ${done ? '' : 'disabled'}>${i < n - 1 ? 'Next speaker' : 'See the five'}</button><button class="btn ghost" data-act="prevSpeaker">Back</button></div>`;
   }
   if (S.step === 'predict') {
     const ord = order(x.predict.length, 50 + S.s), p = a.pred, chk = a.predChecked;
     let h = `${kick(x)}<h2 tabindex="-1">Predict the split</h2><p class="prop">${x.question}</p>
-      <fieldset class="q"><legend>How will the twelve voting members split?</legend><div class="seg one cards">${ord.map((i) => `<label><input type="radio" name="pred" value="${i}" ${p === i ? 'checked' : ''} ${chk ? 'disabled' : ''}><span>${x.predict[i][0]}</span></label>`).join('')}</div></fieldset>`;
-    if (!chk) return h + `<div class="row"><button class="btn pri" data-act="checkPred" ${p !== undefined ? '' : 'disabled'}>Lock in</button>${backBtn()}</div>`;
+      <fieldset class="q"><legend>How will the twelve voting members split?</legend><div class="seg one cards">${ord.map((i) => `<label><input type="radio" name="pred" value="${i}" ${p === i ? 'checked' : ''} ${chk ? 'disabled' : ''}><span>${x.predict[i][0]}</span></label>`).join('')}</div></fieldset>${confRow('pconf', a.predConf, chk)}`;
+    if (!chk) return h + `<div class="row"><button class="btn pri" data-act="checkPred" ${p !== undefined && a.predConf !== undefined ? '' : 'disabled'}>Lock in</button>${backBtn()}</div>`;
     const ok = x.predict[p][1];
     return h + `<p class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? 'Right.' : 'Not what happened.'}</b> ${x.predictFb}</p>${cites(x.predictCites)}<div class="row"><button class="btn pri" data-stage="call">Next: your recommendation</button>${backBtn()}</div>`;
   }
@@ -323,7 +327,8 @@ function renderMeeting() {
     const ord = order(x.calls.length, 80 + S.s), c = a.call;
     return `${kick(x)}<h2 tabindex="-1">Your recommendation</h2><p class="hint">The chairman asks the staff for a view before the vote. There is no right answer here and it is not scored. You will see who at the table stood where you stand.</p>
       <fieldset class="q"><legend>You recommend</legend><div class="seg one cards">${ord.map((i) => `<label><input type="radio" name="call" value="${i}" ${c === i ? 'checked' : ''}><span>${x.calls[i][0]}</span></label>`).join('')}</div></fieldset>
-      <div class="row"><button class="btn pri" data-act="toRoll" ${c !== undefined ? '' : 'disabled'}>Call the roll</button>${backBtn()}</div>`;
+      <fieldset class="q"><legend>Which fact weighs most for you?</legend><div class="seg two">${x.weigh.map((wt, i) => `<label><input type="radio" name="weigh" value="${i}" ${a.weigh === i ? 'checked' : ''}><span>${wt}</span></label>`).join('')}</div></fieldset>
+      <div class="row"><button class="btn pri" data-act="toRoll" ${c !== undefined && a.weigh !== undefined ? '' : 'disabled'}>Call the roll</button>${backBtn()}</div>`;
   }
   if (S.step === 'roll') {
     const pos = x.calls[a.call][1], with_ = x.members.filter((id) => x.votes[id] === pos);
@@ -331,7 +336,7 @@ function renderMeeting() {
       <p class="legendline"><span class="maj">For the motion</span><span class="tight">Against: wanted firmer</span><span class="easy">Against: wanted easier</span></p>
       <div class="roll">${x.members.map((id) => `<div class="${x.votes[id]}${x.votes[id] === pos ? ' you' : ''}"><b>${surname(id)}</b><small>${VOTE_TXT[x.votes[id]]}</small></div>`).join('')}</div>`;
     if (x.extraVote) { const e = x.extraVote; h += `<h3>${e.label}: ${e.tally}</h3><div class="roll">${[...e.yes.map((id) => [id, 'maj', 'For']), ...e.no.map((id) => [id, 'easy', 'Against'])].map(([id, c, l]) => `<div class="${c}"><b>${surname(id)}</b><small>${l}</small></div>`).join('')}</div>${cites([e.cite])}`; }
-    h += `<h3>Who stood with you</h3><p>You recommended: <i>${x.calls[a.call][0]}</i></p>`;
+    h += `<h3>Who stood with you</h3><p>You recommended: <i>${x.calls[a.call][0]}</i></p><p>You gave most weight to: <i>${x.weigh[a.weigh ?? 0]}</i></p>`;
     if (with_.length) h += `<p>${with_.length === x.members.length ? 'Every voting member.' : with_.map((id) => C.PEOPLE[id][0]).join(', ') + '.'}</p>`;
     else h += `<p class="fb">${(x.callNotes || {})[pos] || 'No voting member took this position.'}</p>`;
     if (x.id === 's1' && pos === 'easy') h += '<p class="hint">On the discount rate that afternoon, Partee and Teeters also voted to stand pat.</p>';
@@ -364,12 +369,29 @@ function score() {
     if (a.callDone) { done++; if (x.calls[a.call][1] === 'maj') withMaj++; } });
   return { sort, sortN, pred, ev, evN, withMaj, done };
 }
+EF.watch(() => { if (S.name !== 'meet') return null; const a = A(), x = X(), n = S.s + 1;
+  if (S.step === 'record') return a.qi >= 0 && a.qi < x.quotes.length && a.sort[a.qi] === undefined ? `Session ${n}: placing ${surname(x.quotes[a.qi][0])}` : null;
+  if (S.step === 'predict') return a.predChecked ? null : `Session ${n}: predicting the split`;
+  if (S.step === 'call') return `Session ${n}: your recommendation`;
+  if (S.step === 'contest') return a.evChecked ? null : `Session ${n}: weighing the evidence`;
+  return null; });
+function trail() {
+  EF.resolved();
+  const cal = [[0, 0], [0, 0], [0, 0]];
+  const rows = SES.map((x, i) => { const a = S.ans[i];
+    const sp = x.quotes.map((q, j) => { if (a.sort[j] === undefined) return ''; const ok = a.sort[j] === q[3], c = a.cf[j] ?? 0; cal[c][1]++; if (ok) cal[c][0]++; return `<span class="${ok ? 'tok' : 'tno'}">${surname(q[0])} ${ok ? '✓' : '✕'} <small>${CONF[c].toLowerCase()}</small></span>`; }).filter(Boolean).join(' ');
+    let pr = 'Not played'; if (a.predChecked) { const ok = x.predict[a.pred][1], c = a.predConf ?? 0; cal[c][1]++; if (ok) cal[c][0]++; pr = `${ok ? '✓' : '✕'} ${x.predict[a.pred][0]} <small>${CONF[c].toLowerCase()}</small>`; }
+    const cl = a.callDone ? `${x.calls[a.call][0].split(':')[0]}<br><small>Weighed most: ${x.weigh[a.weigh ?? 0]}</small>` : 'Not played';
+    return `<tr><th>${x.short}</th><td data-l="Speakers you placed">${sp || 'Not played'}</td><td data-l="Split you predicted">${pr}</td><td data-l="Your call">${cl}</td></tr>`; }).join('');
+  const calTxt = CONF.map((c, i) => cal[i][1] ? `${c}: right ${cal[i][0]} of ${cal[i][1]}` : '').filter(Boolean).join('. ');
+  return `<h3>Your reasoning, played back</h3><div class="tw"><table class="trail"><thead><tr><th>Session</th><th>Speakers you placed</th><th>Split you predicted</th><th>Your call and the fact behind it</th></tr></thead><tbody>${rows}</tbody></table></div>${calTxt ? `<p class="hint">How sure you were against how you did. ${calTxt}.</p>` : ''}${EF.html()}`;
+}
 function renderDebrief() {
   const s = score();
   return `<div class="deb"><div class="debhead"><p class="kick">Debrief</p><h2 tabindex="-1">Reading the record</h2>
     <div class="scorebar"><span><b>${s.sort}</b> of ${s.sortN}<small>speakers placed</small></span><span><b>${s.pred}</b> of 3<small>splits predicted</small></span><span><b>${s.ev}</b> of ${s.evN}<small>evidence matched</small></span></div>
     <p class="hint">Scored only on reading the evidence. Your recommendations matched the majority ${s.withMaj} of ${s.done} times, and that is not scored.</p></div>
-    <div class="debcol"><h3>The three votes</h3><div class="tw"><table><thead><tr><th>Session</th><th>Your call</th><th>The vote</th><th>Dissents</th></tr></thead><tbody>` +
+    <div class="debcol wide">${trail()}</div><div class="debcol"><h3>The three votes</h3><div class="tw"><table><thead><tr><th>Session</th><th>Your call</th><th>The vote</th><th>Dissents</th></tr></thead><tbody>` +
     SES.map((x, i) => { const a = S.ans[i], d = x.members.filter((id) => x.votes[id] !== 'maj'); return `<tr><th><button class="link" data-nav="${i + 1}">${x.short}</button></th><td>${a.callDone ? x.calls[a.call][0].split(':')[0] : 'Not played'}</td><td>${a.rolled ? x.tally : 'Not seen'}</td><td>${!a.rolled ? '' : d.length ? d.map((id) => `${surname(id)} (${x.votes[id] === 'tight' ? 'firmer' : 'easier'})`).join(', ') : 'None'}</td></tr>`; }).join('') +
     `</tbody></table></div><p class="contest"><b>Still contested.</b> Whether the policy was necessary, whether it could have cost less, and who paid for it remain open. See the sources in About.</p></div>
     <div class="debcol"><h3>Three things to carry out of the room</h3><ul class="try"><li>The same data produced dissents in both directions at the first and last meetings. Disagreement was about lags, expectations and who bears the cost, not arithmetic.</li><li>The unanimous vote changed the method, not just the rate. Members who disagreed in September could each read the new method as their own.</li><li>By 1982 the money target itself was in doubt. Velocity fell when several members expected it to rise.</li></ul>
@@ -380,9 +402,12 @@ function renderDebrief() {
 panel.addEventListener('change', (e) => {
   const t = e.target, a = S.name === 'meet' ? A() : null; if (!a) return;
   const en = (sel, on) => { const b = panel.querySelector(sel); if (b) b.disabled = !on; };
-  if (t.name === 'sort') { const x = X(); a.sort[a.qi] = t.value; audio.chime(t.value === x.quotes[a.qi][3]); S.focusNext = false; render(); const fb = panel.querySelector('.fb'); if (fb) fb.scrollIntoView({ block: 'nearest' }); }
-  else if (t.name === 'pred') { a.pred = +t.value; en('[data-act=checkPred]', true); }
-  else if (t.name === 'call') { a.call = +t.value; en('[data-act=toRoll]', true); }
+  if (t.name === 'sort') { a.tmp[a.qi] = t.value; en('[data-act=lockSort]', a.cf[a.qi] !== undefined); }
+  else if (t.name === 'sconf') { a.cf[a.qi] = +t.value; en('[data-act=lockSort]', a.tmp[a.qi] !== undefined); }
+  else if (t.name === 'pred') { a.pred = +t.value; en('[data-act=checkPred]', a.predConf !== undefined); }
+  else if (t.name === 'pconf') { a.predConf = +t.value; en('[data-act=checkPred]', a.pred !== undefined); }
+  else if (t.name === 'call') { a.call = +t.value; en('[data-act=toRoll]', a.weigh !== undefined); }
+  else if (t.name === 'weigh') { a.weigh = +t.value; en('[data-act=toRoll]', a.call !== undefined); }
   else if (t.name.startsWith('e-')) { a.ev[+t.name.slice(2)] = +t.value; en('[data-act=checkEv]', X().contest.evidence.every((_, i) => a.ev[i] !== undefined)); }
 });
 document.addEventListener('click', (e) => {
@@ -397,14 +422,15 @@ function act(k) {
   else if (k === 'startMeeting') go('meet', 0);
   else if (k === 'toBrief') go('brief');
   else if (k === 'prevSession') go('meet', S.s - 1);
+  else if (k === 'lockSort') { const x = X(); a.sort[a.qi] = a.tmp[a.qi]; { const ok = a.sort[a.qi] === x.quotes[a.qi][3]; EF.mark({ ok, conf: a.cf[a.qi] }); if (!ok) EF.wrong(); } audio.chime(a.sort[a.qi] === x.quotes[a.qi][3]); S.focusNext = false; render(); const fb = panel.querySelector('.fb'); if (fb) fb.scrollIntoView({ block: 'nearest' }); }
   else if (k === 'hear') { a.qi = 0; audio.tick(); step('record'); }
   else if (k === 'rehear') { a.qi = 0; step('record'); }
-  else if (k === 'nextSpeaker') { a.qi++; audio.tick(); step('record'); }
+  else if (k === 'nextSpeaker') { EF.resolved(); a.qi++; audio.tick(); step('record'); }
   else if (k === 'prevSpeaker') { a.qi--; step('record'); }
-  else if (k === 'checkPred') { a.predChecked = true; audio.chime(X().predict[a.pred][1]); S.focusNext = false; render(); const fb = panel.querySelector('.fb'); if (fb) fb.scrollIntoView({ block: 'center' }); }
+  else if (k === 'checkPred') { a.predChecked = true; { const ok = X().predict[a.pred][1]; EF.mark({ ok, conf: a.predConf }); if (!ok) EF.wrong(); } audio.chime(X().predict[a.pred][1]); S.focusNext = false; render(); const fb = panel.querySelector('.fb'); if (fb) fb.scrollIntoView({ block: 'center' }); }
   else if (k === 'toRoll') { a.callDone = true; step('roll'); }
   else if (k === 'skipRun') { if (S.run) S.run.t = S.run.dur; }
-  else if (k === 'checkEv') { a.evChecked = true; audio.chime(X().contest.evidence.every((e, i) => a.ev[i] === e[1])); S.focusNext = false; render(); const fb = panel.querySelector('.fb'); if (fb) fb.scrollIntoView({ block: 'center' }); }
+  else if (k === 'checkEv') { a.evChecked = true; EF.mark({ ok: X().contest.evidence.every((e, i) => a.ev[i] === e[1]) }); audio.chime(X().contest.evidence.every((e, i) => a.ev[i] === e[1])); S.focusNext = false; render(); const fb = panel.querySelector('.fb'); if (fb) fb.scrollIntoView({ block: 'center' }); }
   else if (k === 'next') { if (S.s < 2) go('meet', S.s + 1); else go('debrief'); }
   else if (k === 'restart') { S.ans = fresh(); go('brief'); }
   else if (k === 'about') openAbout();
@@ -421,7 +447,7 @@ const caption = $('#caption');
 function say(t) { caption.textContent = t || ''; caption.classList.toggle('on', !!t); }
 
 // ---------- transitions ----------
-function step(s) {
+function step(s) { if (s !== S.step) EF.resolved();
   const a = A(), x = X(); S.step = s; say(''); S.run = null; S.rollT = -1;
   a.max = Math.max(a.max, STAGES.indexOf(s));
   if (s === 'roll') { if (!a.rolled) { a.rolled = true; if (!reduce) S.rollT = 0; audio.gavel(); } }

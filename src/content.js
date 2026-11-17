@@ -70,7 +70,7 @@ export const SESSIONS = [
     votes: { volcker: 'maj', schultz: 'maj', wallich: 'maj', coldwell: 'tight', partee: 'maj', teeters: 'maj', rice: 'easy', black: 'tight', balles: 'tight', kimbrel: 'maj', mayo: 'maj', timlen: 'maj' },
     tally: '8 to 4',
     quotes: [
-      ['rice', 'Whatever tightening of policy might be adopted today would be largely symbolic. … I would want to stand pat.', 't0918', 'easy'],
+      ['rice', 'Whatever tightening of policy might be adopted today would be largely symbolic.', 't0918', 'easy'],
       ['teeters', 'We have really gone very far, very fast in the past 6 to 8 weeks. I think it\'s time that we slow down and see what we are doing.', 't0918', 'maj'],
       ['coldwell', 'If there is anything certain in this world right now it seems to be that inflation will continue.', 't0918', 'tight'],
       ['wallich', 'It seems to me that we face basically a question of timing.', 't0918', 'maj'],
@@ -85,9 +85,9 @@ export const SESSIONS = [
     },
     predict: [
       ['8 to 4, three wanting firmer policy and one wanting none', true],
-      ['8 to 4, with all four dissenters wanting a firmer policy', false],
-      ['12 to 0, every voting member backing a small rise', false],
-      ['7 to 5, with five dissenters wanting no rise at all', false],
+      ['8 to 4, one wanting firmer policy and three wanting none', false],
+      ['9 to 3, two wanting firmer policy and one wanting none', false],
+      ['10 to 2, one wanting firmer policy and one wanting none', false],
     ],
     predictFb: 'The directive passed 8 to 4, with dissents from both directions. The same afternoon the Board raised the discount rate to 11 percent by 4 to 3: Volcker, Schultz, Wallich and Coldwell for; Partee, Teeters and Rice against.',
     predictCites: ['r0918', 'ar79'],
@@ -96,6 +96,7 @@ export const SESSIONS = [
       ['Firm more: let the funds rate climb to 12% if money keeps growing', 'tight'],
       ['Stand pat: hold the funds rate where it is and wait for data', 'easy'],
     ],
+    weigh: ['Inflation near 12 percent', 'The recession forecast', 'Money growth over target', 'The weak dollar abroad'],
     extraVote: { label: 'Board of Governors, discount rate to 11 percent', tally: '4 to 3', yes: ['volcker', 'schultz', 'wallich', 'coldwell'], no: ['partee', 'teeters', 'rice'], cite: 'ar79' },
     after: `<p>Two votes on one day, both split. The Board's 4 to 3 discount vote was public. Over the next three weeks gold and other commodities surged and the dollar fell. At the Saturday meeting that followed, Governor Partee described a mood of wanting "to get into goods and out of money."</p>`,
     afterCites: ['t1006', 'lor'],
@@ -151,6 +152,7 @@ export const SESSIONS = [
       ['Stay: keep setting the funds rate, and raise it a full point', 'alt'],
       ['Wait: hold rates steady and lean on fiscal restraint instead', 'none'],
     ],
+    weigh: ['Markets close to panic', 'Inflation expectations', 'The risk of recession', 'Money growth over target'],
     callNotes: {
       alt: 'No one voted for this, but it was live. Volcker said he could "go with either of these broad approaches," and the Administration was uneasy about a shift in technique.',
       none: 'No one at the table argued for this. Volcker said the Committee could not "walk away today without a program that is strong in fact and perceived as strong."',
@@ -197,9 +199,9 @@ export const SESSIONS = [
     },
     predict: [
       ['8 to 4, three wanting firmer policy and one wanting easier', true],
-      ['12 to 0, every member backing easier policy at 9.5% jobless', false],
-      ['9 to 3, with three doves dissenting for faster rate cuts', false],
-      ['10 to 2, with two hawks dissenting against any easing', false],
+      ['9 to 3, two wanting firmer policy and one wanting easier', false],
+      ['9 to 3, one wanting firmer policy and two wanting easier', false],
+      ['7 to 5, two wanting firmer policy and three wanting easier', false],
     ],
     predictFb: 'The directive passed 8 to 4, split both ways, the same shape as September 1979. Black, Ford and Wallich dissented for a firmer policy; Teeters dissented for an easier one.',
     predictCites: ['r0701'],
@@ -208,6 +210,7 @@ export const SESSIONS = [
       ['Hold the line: firm up to bring M1 back inside its range', 'tight'],
       ['Ease openly: raise the money targets and signal lower rates', 'easy'],
     ],
+    weigh: ['Unemployment at 9.5 percent', 'Inflation still near 7 percent', 'M1 above its target range', 'Bank and thrift failures'],
     after: `<p>Rates fell fast. The funds rate dropped from 14.2 percent in June to 10.1 percent in August. Mexico announced it could not pay its debts that month. M1 velocity, which had been rising 3 to 4 percent a year, fell instead. On October 5 the Committee voted 9 to 3 to give M1 much less weight for the rest of the year. Governor Martin warned that the first reading would be "that we caved in, the election is coming, and here they go again."</p>`,
     afterCites: ['t1005', 'r1005'],
     events: { 54: 'July 1982: the Committee tolerates faster money growth.', 55: 'August 1982: Mexico cannot pay. The funds rate is near 10 percent.', 57: 'October 5: M1 given much less weight, 9 to 3.', 58: 'November 1982: unemployment peaks at 10.8 percent.', 63: 'Spring 1983: recovery is under way.', 65: 'June 1983: inflation is down to 2.5 percent.', 71: 'December 1983: unemployment is 8.3 percent. Mortgage rates are still above 13 percent.' },
@@ -232,6 +235,8 @@ export const ABOUT = `<h3>What is real</h3>
 <li>Every quotation is verbatim from the FOMC transcript of that meeting. The Fed's note on these transcripts says the Secretariat lightly edited the raw transcript, that errors remain, and that members never reviewed it. The quotation used for each speaker appears on screen with its source.</li>
 <li>Descriptions of a member's reasons that are not in quotation marks are paraphrase, drawn from the Record of Policy Actions or the transcript. Summaries of the scholarly positions are also paraphrase, with their sources listed.</li>
 <li>Data are monthly from FRED, the Federal Reserve Bank of St. Louis, current vintage. Members saw earlier, unrevised numbers, so their figures differ slightly.</li></ul>
+<h3>How your thinking is recorded</h3>
+<p>Before each answer is checked you say how sure you are. With each recommendation you name the fact that weighs most for you. The page keeps these and plays them back in the debrief, with the time you spent on open decisions. Nothing is sent anywhere.</p>
 <h3>What is not modeled</h3>
 <p>Fed1979 does not simulate what would have happened under a different decision. Your recommendation is compared with the real votes, and the board on the table plays back the real monthly record.</p>
 <p>The member cards show only what is in the record of these meetings: each person's role, recorded votes and words. Fed1979 does not characterize a member's views beyond that.</p>
